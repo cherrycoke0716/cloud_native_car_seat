@@ -31,36 +31,19 @@ def main():
     with VSSClient(broker_host, broker_port, root_certificates=None) as client:
         logger.info("Connected to Databroker")
         
-        # 메타데이터 등록 시도 (VSS 트리에 해당 경로가 없으면 등록)
-        try:
-            logger.info("Registering Vehicle.Cabin.Seat.Row1.Pos1.Position")
-            # client.set_metadata가 비동기 메서드일 수 있으나, 동기 컨텍스트에서는 동기적으로 호출됨을 가정하거나, 
-            # 0.4.0 버전 이상에서는 ensure_startup_connection=True 기본값이면 연결됨.
-            # 하지만 VSSClient는 동기/비동기가 나뉨. 여기서는 동기 컨텍스트인지 확인 필요.
-            # kuksa_client.grpc.VSSClient vs kuksa_client.grpc.aio.VSSClient
-            # 현재 import는 kuksa_client.grpc.VSSClient (동기)
-            from kuksa_client.grpc import Metadata
-            client.set_metadata({
-                'Vehicle.Cabin.Seat.Row1.Pos1.Position': Metadata(
-                    data_type='uint8',
-                    description='Seat position of row 1 pos 1',
-                    entry_type='Actuator'
-                )
-            })
-            logger.info("Metadata registered successfully")
-        except Exception as e:
-            logger.warning(f"Metadata registration skipped or failed: {e}")
+        # 메타데이터 등록 시도는 생략합니다. (Vehicle.Speed는 기본 제공)
+        logger.info("Using default VSS path: Vehicle.Speed")
 
         while True:
             # 1. 다음 위치 계산
             current_pos = calculate_next_position(current_pos)
             
             # 2. KUKSA Databroker로 값 전송
-            logger.info(f"Set Vehicle.Cabin.Seat.Row1.Pos1.Position to: {current_pos}%")
+            logger.info(f"Set Vehicle.Speed to: {current_pos}")
             
             try:
                 client.set_current_values({
-                    'Vehicle.Cabin.Seat.Row1.Pos1.Position': Datapoint(current_pos),
+                    'Vehicle.Speed': Datapoint(current_pos),
                 })
             except Exception as e:
                 logger.error(f"Error setting value: {e}")
