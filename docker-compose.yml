@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  # KUKSA Databroker
+  databroker:
+    image: ghcr.io/eclipse/kuksa.val/databroker:0.4.1
+    container_name: databroker
+    ports:
+      - "55555:55555"
+    command: --insecure
+
+  # Seat Service (Custom python service)
+  seat-service:
+    build: .
+    container_name: seat-service
+    depends_on:
+      - databroker
+    environment:
+      # Connect to the internal docker network port instead of localhost
+      - KUKSA_DATA_BROKER_ADDR=databroker
+      - KUKSA_DATA_BROKER_PORT=55555
